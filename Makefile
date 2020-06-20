@@ -38,7 +38,11 @@ mender_grub.cfg: $(SOURCES) $(srcdir)/Makefile
 	cp -f mender_grubenv_defines $(TMP_DIR)/00_mender_grubenv_defines_grub.cfg
 	cd $(TMP_DIR) && for script in [0-9][0-9]_*_grub.cfg; do \
 		echo "# Start of ---------- `basename $$script` ----------"; \
+		echo "######################################################"; \
+		echo; \
 		cat $$script; \
+		echo; \
+		echo "######################################################"; \
 		echo "# End of ---------- `basename $$script` ----------"; \
 	done > mender_grub.cfg
 	mv $(TMP_DIR)/mender_grub.cfg .
