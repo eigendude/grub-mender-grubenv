@@ -8,6 +8,9 @@ cd $(dirname $0)
 
 rm -rf output
 
+# Use the GitHub API to not cache specific RUN commands
+SHA=$(curl -s 'https://api.github.com/repos/eigendude/grub/commits' | jq -r '.[0].sha')
+
 for arch in x86-64 arm aarch64; do
     mkdir -p output/$arch
     echo -n "Building binaries for $arch..."
@@ -17,10 +20,12 @@ for arch in x86-64 arm aarch64; do
     else
         exec 9>/tmp/docker-build.log
     fi
+    echo -n " (at ${SHA}) "
     docker build \
            -f Dockerfile.$arch \
            -t grub-efi:$arch \
            --build-arg GRUB_VERSION=${GRUB_VERSION} \
+           --build-arg SHA=${SHA} \
            . 1>&9 || docker_build_ret=$?
     if [ $docker_build_ret -ne 0 ]; then
         echo " failed!"

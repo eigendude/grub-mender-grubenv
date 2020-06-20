@@ -2,18 +2,24 @@ FROM debian:stretch
 
 RUN apt-get update -q && \
     apt-get install -qy crossbuild-essential-armhf python wget bison flex
+RUN apt-get install -qy git autoconf gettext autopoint pkg-config
 
 ARG GRUB_VERSION=none
 RUN if [ "$GRUB_VERSION" = none ]; then echo "GRUB_VERSION must be set!" 1>&2; exit 1; fi
 
-RUN wget --progress=dot:mega ftp://ftp.gnu.org/gnu/grub/grub-${GRUB_VERSION}.tar.gz && \
-    tar -xzf grub-${GRUB_VERSION}.tar.gz
+RUN git clone -b v${GRUB_VERSION} https://github.com/eigendude/grub.git
 
-WORKDIR grub-${GRUB_VERSION}
+WORKDIR grub
 
+RUN ./bootstrap
 RUN ./configure \
     --prefix=/install \
     --with-platform=efi \
     --host arm-linux-gnueabihf
+
+ARG SHA=LATEST
+RUN SHA=${SHA} \
+    git fetch && git reset --hard origin/v${GRUB_VERSION}
+
 RUN make -j $(nproc)
 RUN make install
